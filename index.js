@@ -1,5 +1,4 @@
 const fs = require('fs');
-const { readFile } = require('fs/promises');
 const http = require('http');
 const { json } = require('react-router-dom');
 const url = require('url');
@@ -67,9 +66,9 @@ const prodData = JSON.parse(data);
 
 // this callback func runs everytime when there is new request
 const server = http.createServer((req,res)=>{
-    const Path = req.url;
+    const {query, pathname} = url.parse(req.url,true);
 
-    if(Path === '/' || Path == '/overview'){
+    if(pathname === '/' || pathname == '/overview'){
         res.writeHead(200, {'Content-type':'text/html'})
 
         let cardHtml = prodData.map((ele)=>{ // we get array of htmlcode for each prod card
@@ -82,9 +81,12 @@ const server = http.createServer((req,res)=>{
         const op = overview.replace('{%PRODUCT_CARD%}',cardHtml);
 
         res.end(op);
-    }else if(Path === '/product'){
-        res.end("This is PRODUCT");
-    }else if(Path === '/api'){
+    }else if(pathname === '/product'){
+        const prod = prodData[query.id];
+        const op = replaceVariables(product,prod);
+        res.end(op);
+        // res.end("This is PRODUCT");
+    }else if(pathname === '/api'){
         res.writeHead(200, {'Content-type':'application/json'})
         res.end(data);
     }else{
